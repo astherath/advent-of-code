@@ -18,6 +18,7 @@ fn solve(instructions: Vec<Direction>) {
 struct Position {
     depth: u32,
     horizontal: u32,
+    aim: u32,
 }
 
 impl Position {
@@ -25,14 +26,18 @@ impl Position {
         Self {
             depth: 0,
             horizontal: 0,
+            aim: 0,
         }
     }
 
     fn ingest_instruction(mut self, instruction: Direction) -> Self {
         match instruction {
-            Direction::Forward(amount) => self.horizontal += amount,
-            Direction::Up(amount) => self.depth -= amount,
-            Direction::Down(amount) => self.depth += amount,
+            Direction::Forward(amount) => {
+                self.horizontal += amount;
+                self.depth += self.aim * amount
+            }
+            Direction::Up(amount) => self.aim -= amount,
+            Direction::Down(amount) => self.aim += amount,
         };
         self
     }
