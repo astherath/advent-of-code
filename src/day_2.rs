@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub fn main() {
     let filename = "day_2_data.txt";
     // let filename = "day_2_test_data.txt";
