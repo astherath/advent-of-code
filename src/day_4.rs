@@ -22,23 +22,16 @@ fn parse(filename: &str) -> ParsedData {
 
     let boards = lines[1..]
         .into_iter()
-        // iter of Strings
         .fold(Vec::<Vec<String>>::new(), |mut acc, x| {
-            // turn into 5x5 Vec<Vec<String>>
             if acc.is_empty() {
-                // edge case of first insert
-                acc[0] = vec![x.to_string()];
+                acc.insert(0, vec![x.to_string()]);
             } else {
-                // acc.len() == 1
-                // acc[0].len() == 1
-                // need to -> acc[0][acc[0].len() % 5] = x
                 let out_len = acc.len();
                 if acc[out_len - 1].len() < 5 {
-                    // insert x
                     let inner_len = acc[out_len - 1].len();
-                    acc[out_len - 1][inner_len] = x.to_string();
+                    acc[out_len - 1].insert(inner_len, x.to_string());
                 } else {
-                    acc[out_len] = vec![x.to_string()];
+                    acc.insert(out_len, vec![x.to_string()]);
                 }
             }
             acc
@@ -82,6 +75,7 @@ type MatrixString = Vec<Vec<String>>;
 type Num = (u16, bool);
 type BoardMatrix = Vec<Vec<Num>>;
 
+#[derive(Debug)]
 struct Board {
     matrix: BoardMatrix,
 }
