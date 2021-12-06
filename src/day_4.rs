@@ -41,12 +41,30 @@ fn parse(filename: &str) -> ParsedData {
         .map(|x| Board::from_matrix_string(x))
         .collect();
 
-    dbg!(&boards);
-
     (nums, boards)
 }
 
-fn solve(data: ParsedData) {}
+fn solve(data: ParsedData) {
+    let (winning_board, num_won_with) = get_solved_board(data).unwrap();
+    dbg!(&winning_board);
+    dbg!(&num_won_with);
+}
+
+fn get_solved_board(data: ParsedData) -> Option<(Board, u16)> {
+    let (nums, boards) = data;
+
+    for num in nums.into_iter() {
+        for board in boards.into_iter() {
+            let (x, has_won) = board.mark_number(num);
+            board = x;
+            if has_won {
+                return Some((board, num));
+            }
+        }
+    }
+
+    None
+}
 
 impl Board {
     fn from_matrix_string(board: MatrixString) -> Self {
@@ -62,7 +80,7 @@ impl Board {
         }
     }
 
-    fn mark_number(mut self, num: u16) -> Self {
+    fn mark_number(mut self, num: u16) -> (Self, bool) {
         // find number and mark
         self.matrix.iter_mut().flatten().for_each(|x| {
             if x.0 == num {
@@ -70,7 +88,46 @@ impl Board {
             }
         });
 
-        self
+        let has_won = self.check_if_has_won();
+
+        (self, has_won)
+    }
+
+    fn check_if_has_won(&self) -> bool {
+        // check all rows
+
+        // check all cols
+        let all_cols = self.matrix.iter().map(|x| x.iter().all(|x| x.1)).any(|x| x);
+
+        let size = self.matrix.len(); // N x N grid guaranteed
+        let all_rows = self
+            .matrix
+            .iter()
+            .map(|x| {
+                x.iter()
+                    .enumerate()
+                    .fold(vec![true; 5], |mut acc, x| {
+                        let (i, val) = x;
+                        let current = acc[i % 5];
+                        acc.insert(i % size, val.1 && current);
+                        acc
+                    })
+                    .into_iter()
+                    .all(|x| x)
+            })
+            .any(|x| x);
+
+        all_cols || all_rows
+    }
+}
+
+impl std::fmt::Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let fmt_str = self.matrix.iter().fold(String::new(), |mut acc, x| {
+            acc.push_str(&format!("{:?}\n", x));
+            acc
+        });
+        write!(f, "\n{}", fmt_str)
     }
 }
 
