@@ -44,21 +44,21 @@ fn parse(filename: &str) -> ParsedData {
     (nums, boards)
 }
 
-fn solve(data: ParsedData) {
-    let (winning_board, num_won_with) = get_solved_board(data).unwrap();
-    dbg!(&winning_board);
+fn solve(mut data: ParsedData) {
+    let (winning_board_index, num_won_with) = get_solved_board(&mut data).unwrap();
+    dbg!(&winning_board_index);
     dbg!(&num_won_with);
+    let board = &data.1[winning_board_index];
+    let score = board.get_score(num_won_with);
+    dbg!(&score);
 }
 
-fn get_solved_board(data: ParsedData) -> Option<(Board, u16)> {
-    let (nums, boards) = data;
-
-    for num in nums.into_iter() {
-        for board in boards.into_iter() {
-            let (x, has_won) = board.mark_number(num);
-            board = x;
+fn get_solved_board(data: &mut ParsedData) -> Option<(usize, u16)> {
+    for num in &data.0 {
+        for (i, board) in data.1.iter_mut().enumerate() {
+            let (_, has_won) = board.mark_number(*num);
             if has_won {
-                return Some((board, num));
+                return Some((i, *num));
             }
         }
     }
@@ -80,7 +80,7 @@ impl Board {
         }
     }
 
-    fn mark_number(mut self, num: u16) -> (Self, bool) {
+    fn mark_number(&mut self, num: u16) -> (&mut Self, bool) {
         // find number and mark
         self.matrix.iter_mut().flatten().for_each(|x| {
             if x.0 == num {
@@ -91,6 +91,18 @@ impl Board {
         let has_won = self.check_if_has_won();
 
         (self, has_won)
+    }
+
+    fn get_score(&self, final_num: u16) -> usize {
+        (self
+            .matrix
+            .iter()
+            .map(|x| x.iter())
+            .flatten()
+            .filter(|x| !x.1)
+            .map(|x| x.0)
+            .fold(0, |acc, x| x + acc)
+            * final_num) as usize
     }
 
     fn check_if_has_won(&self) -> bool {
